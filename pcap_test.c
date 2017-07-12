@@ -1,6 +1,20 @@
 #include <pcap.h>
 #include <stdio.h>
 
+char* getSrcMac(u_char *packet) {
+	static char buf[18] = "";
+	int i = 6;
+	snprintf(buf, 18, "%02x:%02x:%02x:%02x:%02x:%02x", packet[--i], packet[--i], packet[--i], packet[--i], packet[--i], packet[--i]);
+	return buf;
+}
+
+char* getDestMac(u_char *packet) {
+	static char buf[18] = "";
+	int i = 12;
+	snprintf(buf, 18, "%02x:%02x:%02x:%02x:%02x:%02x", packet[--i], packet[--i], packet[--i], packet[--i], packet[--i], packet[--i]);
+	return buf;
+}
+
 int main(int argc, char *argv[])
 {
 	pcap_t *handle;			/* Session handle */
@@ -13,52 +27,23 @@ int main(int argc, char *argv[])
 	struct pcap_pkthdr header;	/* The header that pcap gives us */
 	const u_char *packet;		/* The actual packet */
 
-	/* Define the device */
+	/* Error 제어 { */
 	dev = pcap_lookupdev(errbuf);
-	if (dev == NULL) {
-		fprintf(stderr, "Couldn't find default device: %s\n", errbuf);
-		return(2);
-	}
-
-	/* Find the properties for the device */
-	if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1) {
-		fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf);
-		net = 0;
-		mask = 0;
-	}
-
-	/* Open the session in promiscuous mode */
+	if (dev == NULL) { fprintf(stderr, "Couldn't find default device: %s\n", errbuf); return(2); }
+	if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1) { fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf); net = 0; mask = 0; }
 	handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
-	if (handle == NULL) {
-		fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
-		return(2);
-	}
-
-	/* Compile and apply the filter */
-	if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
-		fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
-		return(2);
-	}
-
-	if (pcap_setfilter(handle, &fp) == -1) {
-		fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle));
-		return(2);
-	}
-
+	if (handle == NULL) { fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf); return(2); }
+	if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) { fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle)); return(2); }
+	if (pcap_setfilter(handle, &fp) == -1) { fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle)); return(2); }
+	/*}*/
 
 	while(1) {
-	    packet = pcap_next(handle, &header);
+	    pcap_next_ex(handle, &header, &packet);
 		int i = 0;
-		printf("\n");
-		printf("\n");
-		printf("\n");
-		if(header.len > 13)	{
-			for(i=0;i<6;i++)	{
-				printf("%x-", packet[i]); //,9,10,11,12,13
-			}
-		}
-		printf("\n");
-	    printf("Jacked a packet with length of [%d]\n", header.caplen);
+
+		printf("\n -> getSrcMac : %s", getSrcMac(packet));
+		printf("\n -> getDestMac : %s", getDestMac(packet));
+
 	}
 
 	pcap_close(handle);
