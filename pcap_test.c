@@ -15,6 +15,11 @@ char* getDestMac(u_char *packet) {
 	return buf;
 }
 
+int isInternetProtocol(u_char *packet) {
+	if(packet[12]==8 && packet[13]==0)	{ return 1; }
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	pcap_t *handle;			/* Session handle */
@@ -44,6 +49,10 @@ int main(int argc, char *argv[])
 		printf("\n -> getSrcMac : %s", getSrcMac(packet));
 		printf("\n -> getDestMac : %s", getDestMac(packet));
 
+		// Ethernet Protocol 이라면
+		if(isInternetProtocol(packet))	{
+
+		}
 	}
 
 	pcap_close(handle);
