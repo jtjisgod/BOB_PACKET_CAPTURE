@@ -1,18 +1,23 @@
 #include <pcap.h>
 #include <stdio.h>
 
+#define MAC_SIZE 18
+#define ETHERNET_OFFSET 14
+#define IP_SIZE 16
+
 char* getSrcMac(u_char *packet) {
-	static char buf[18] = "";
+	static char buf[MAC_SIZE] = "";
 	int i = 6;
-	snprintf(buf, 18, "%02x:%02x:%02x:%02x:%02x:%02x", packet[--i], packet[--i], packet[--i], packet[--i], packet[--i], packet[--i]);
+	snprintf(buf, MAC_SIZE, "%02x:%02x:%02x:%02x:%02x:%02x", packet[--i], packet[--i], packet[--i], packet[--i], packet[--i], packet[--i]);
 	return buf;
 }
 
 char* getDestMac(u_char *packet) {
-	static char buf[18] = "";
+	static char buf[MAC_SIZE] = "";
 	int i = 12;
-	snprintf(buf, 18, "%02x:%02x:%02x:%02x:%02x:%02x", packet[--i], packet[--i], packet[--i], packet[--i], packet[--i], packet[--i]);
+	snprintf(buf, MAC_SIZE, "%02x:%02x:%02x:%02x:%02x:%02x", packet[--i], packet[--i], packet[--i], packet[--i], packet[--i], packet[--i]);
 	return buf;
+
 }
 
 int isInternetProtocol(u_char *packet) {
@@ -20,26 +25,41 @@ int isInternetProtocol(u_char *packet) {
 	return 0;
 }
 
+char* getSrcIP(u_char *packet) {
+	static char buf[IP_SIZE] = "";
+	int i = ETHERNET_OFFSET + 15;
+	snprintf(buf, IP_SIZE, "%d.%d.%d.%d", packet[i--], packet[i--], packet[i--], packet[i--]);
+	return buf;
+}
+
+char* getDestIP(u_char *packet) {
+	static char buf[IP_SIZE] = "";
+	int i = ETHERNET_OFFSET + 19;
+	snprintf(buf, IP_SIZE, "%d.%d.%d.%d", packet[i--], packet[i--], packet[i--], packet[i--]);
+	return buf;
+}
+
 int main(int argc, char *argv[])
 {
-	pcap_t *handle;			/* Session handle */
-	char *dev;			/* The device to sniff on */
+	pcap_t *handle;					/* Session handle */
+	char *dev;						/* The device to sniff on */
 	char errbuf[PCAP_ERRBUF_SIZE];	/* Error string */
-	struct bpf_program fp;		/* The compiled filter */
+	struct bpf_program fp;			/* The compiled filter */
 	char filter_exp[] = "port 80";	/* The filter expression */
-	bpf_u_int32 mask;		/* Our netmask */
-	bpf_u_int32 net;		/* Our IP */
-	struct pcap_pkthdr header;	/* The header that pcap gives us */
-	const u_char *packet;		/* The actual packet */
+	bpf_u_int32 mask;				/* Our netmask */
+	bpf_u_int32 net;				/* Our IP */
+	struct pcap_pkthdr header;		/* The header that pcap gives us */
+	const u_char *packet;			/* The actual packet */
+
+	dev = pcap_lookupdev(errbuf);
 
 	/* Error 제어 { */
-	dev = pcap_lookupdev(errbuf);
-	if (dev == NULL) { fprintf(stderr, "Couldn't find default device: %s\n", errbuf); return(2); }
-	if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1) { fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf); net = 0; mask = 0; }
-	handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
-	if (handle == NULL) { fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf); return(2); }
-	if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) { fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle)); return(2); }
-	if (pcap_setfilter(handle, &fp) == -1) { fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle)); return(2); }
+		if (dev == NULL) { fprintf(stderr, "Couldn't find default device: %s\n", errbuf); return(2); }
+		if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1) { fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf); net = 0; mask = 0; }
+		handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
+		if (handle == NULL) { fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf); return(2); }
+		if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) { fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle)); return(2); }
+		if (pcap_setfilter(handle, &fp) == -1) { fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle)); return(2); }
 	/*}*/
 
 	while(1) {
@@ -51,8 +71,11 @@ int main(int argc, char *argv[])
 
 		// Ethernet Protocol 이라면
 		if(isInternetProtocol(packet))	{
-
+			printf("\n -> getSrcIP : %s", getSrcIP(packet));
+			printf("\n -> getDestIP : %s", getDestIP(packet));
 		}
+
+		printf("\n\n\n\n");
 	}
 
 	pcap_close(handle);
