@@ -3,18 +3,20 @@
 
 #define MAC_SIZE 18
 #define ETHERNET_OFFSET 14
+#define TCP_OFFSET 34
 #define IP_SIZE 16
+#define WORD 4 // In TCP, 1 WORD = 4 Bytes
 
 char* getSrcMac(u_char *packet) {
 	static char buf[MAC_SIZE] = "";
-	int i = 6;
+	int i = 12;
 	snprintf(buf, MAC_SIZE, "%02x:%02x:%02x:%02x:%02x:%02x", packet[--i], packet[--i], packet[--i], packet[--i], packet[--i], packet[--i]);
 	return buf;
 }
 
 char* getDestMac(u_char *packet) {
 	static char buf[MAC_SIZE] = "";
-	int i = 12;
+	int i = 6;
 	snprintf(buf, MAC_SIZE, "%02x:%02x:%02x:%02x:%02x:%02x", packet[--i], packet[--i], packet[--i], packet[--i], packet[--i], packet[--i]);
 	return buf;
 
@@ -22,6 +24,11 @@ char* getDestMac(u_char *packet) {
 
 int isInternetProtocol(u_char *packet) {
 	if(packet[12]==8 && packet[13]==0)	{ return 1; }
+	return 0;
+}
+
+int isTCP(u_char *packet) {
+	if(packet[ETHERNET_OFFSET + 9] == 6)	{ return 1; }
 	return 0;
 }
 
@@ -37,6 +44,20 @@ char* getDestIP(u_char *packet) {
 	int i = ETHERNET_OFFSET + 19;
 	snprintf(buf, IP_SIZE, "%d.%d.%d.%d", packet[i--], packet[i--], packet[i--], packet[i--]);
 	return buf;
+}
+
+int getSrcPort(u_char *packet)	{
+	return packet[TCP_OFFSET+0] * 0x100 + packet[TCP_OFFSET+1];
+}
+
+int getDestPort(u_char *packet) {
+	return packet[TCP_OFFSET+2] * 0x100 + packet[TCP_OFFSET+3];
+}
+
+int getData(u_char *packet, int size) {
+	u_char n = packet[TCP_OFFSET+12] >> 4;
+	int DATA_OFFSET = n * 4;
+	return &(packet[TCP_OFFSET+DATA_OFFSET]);
 }
 
 int main(int argc, char *argv[])
@@ -70,15 +91,25 @@ int main(int argc, char *argv[])
 		printf("\n -> getDestMac : %s", getDestMac(packet));
 
 		// Ethernet Protocol 이라면
-		if(isInternetProtocol(packet))	{
-			printf("\n -> getSrcIP : %s", getSrcIP(packet));
-			printf("\n -> getDestIP : %s", getDestIP(packet));
-		}
+		if(!isInternetProtocol(packet))	{ continue; }
 
-		printf("\n\n\n\n");
+		printf("\n -> getSrcIP : %s", getSrcIP(packet));
+		printf("\n -> getDestIP : %s", getDestIP(packet));
+
+		if(!isTCP(packet)) { continue; }
+
+		printf("\n -> getSrcPort : %d", getSrcPort(packet));
+		printf("\n -> getDestPort : %d", getDestPort(packet));
+
+		printf("\n -> DATA : %s", getData(packet, 12));
+
 	}
 
 	pcap_close(handle);
 
+	printf("\n\n");
+
  	return(0);
 }
+
+// tcp.sport, tcp.dport / data
