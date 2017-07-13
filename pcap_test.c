@@ -13,8 +13,8 @@
 
 #define SRC_MAC 6
 #define DEST_MAC 12
-#define SRC_IP 19
-#define DEST_IP 15
+#define SRC_IP 15
+#define DEST_IP 19
 #define SRC_PORT 0
 #define DEST_PORT 2
 
@@ -36,7 +36,7 @@ int getPort(u_char *packet, int offset)	{
 }
 
 char* getData(u_char *packet, int size) {
-	static char buf[100] = "";
+	static char buf[1000] = "";
 	u_char n = packet[TCP_OFFSET+12] >> 4;
 	int DATA_OFFSET = n * WORD;
 	memcpy(buf, &(packet[TCP_OFFSET+DATA_OFFSET]), size);
@@ -80,24 +80,27 @@ int main(int argc, char *argv[])
 	    pcap_next_ex(handle, &header, &packet);
 		int i = 0;
 
+		printf("\n└──────────────────────────────────────────────┘");
+
 		printf("\n\n\n");
 
-		printf("\n -> Source Mac Address : %s", getMac(packet, SRC_MAC));
-		printf("\n -> Destination Mac Address : %s", getMac(packet, DEST_MAC));
+		printf("\n┌──────────────────── DATA ────────────────────┐");
+
+		printf("\n  Source Mac Address : %s", getMac(packet, SRC_MAC));
+		printf("\n  Destination Mac Address : %s", getMac(packet, DEST_MAC));
 
 		// Ethernet Protocol 이라면
 		if(!isInternetProtocol(packet))	{ continue; }
 
-		printf("\n -> getSrcIP : %s", getIP(packet, SRC_IP));
-		printf("\n -> getDestIP : %s", getIP(packet, DEST_IP));
+		printf("\n  Source IP Address : %s", getIP(packet, SRC_IP));
+		printf("\n  Destination IP Address : %s", getIP(packet, DEST_IP));
 
 		if(!isTCP(packet)) { continue; }
 
-		printf("\n -> getSrcPort : %d", getPort(packet, SRC_PORT));
-		printf("\n -> getDestPort : %d", getPort(packet, DEST_PORT));
+		printf("\n  TCP Source Port : %d", getPort(packet, SRC_PORT));
+		printf("\n  TCP Destination Port : %d", getPort(packet, DEST_PORT));
 
-		printf("\n -> DATA : %s", getData(packet, 100));
-
+		printf("\n  DATA : %s", getData(packet, 100));
 	}
 
 	pcap_close(handle);
