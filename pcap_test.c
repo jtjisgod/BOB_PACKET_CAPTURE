@@ -67,6 +67,27 @@ int main(int argc, char *argv[])
 
 	dev = pcap_lookupdev(errbuf);
 
+	system("clear");
+
+	printf("\n\n");
+
+	puts("────────────────────────────────────────────────────────────────────────────────────────────────");
+	puts("");
+	puts("");
+	puts("		▄█         ▄▀▀▀▀▄       ▄▀▀▄ ▄▄        ▄▀▀█▄        ▄▀▀▄▀▀▀▄       ▄▀▀▄ █ ");
+	puts("	▄▀▀▀█▀▐		█ █     ▐      █  █   ▄▀      ▐ ▄▀ ▀▄      █   █   █      █  █ ▄▀ ");
+	puts("	     █             ▀         ▐  █▄▄▄█        █▄▄▄█      ▐  █▀▀█▀       ▐  █▀▄  ");
+	puts("	     █         ▀▄   █          █   █        ▄▀   █       ▄▀    █         █   █ ");
+	puts("	▄   ▀▄          █▀▀▀          ▄▀  ▄▀       █   ▄▀       █     █        ▄▀   █  ");
+	puts("	▀▀▀▀           ▐            █   █         ▐   ▐        ▐     ▐        █    ▐  ");
+	puts("					▐        ▐                         ▐       ");
+	puts("");
+	puts("				The J-SHARK v1.0.0						");
+	puts("");
+	puts("────────────────────────────────────────────────────────────────────────────────────────────────");
+
+	printf("\n\n");
+
 	/* Error 제어 { */
 		if (dev == NULL) { fprintf(stderr, "Couldn't find default device: %s\n", errbuf); return(2); }
 		if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1) { fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf); net = 0; mask = 0; }
@@ -76,11 +97,13 @@ int main(int argc, char *argv[])
 		if (pcap_setfilter(handle, &fp) == -1) { fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle)); return(2); }
 	/*}*/
 
+	printf("\n┌──────────────────── DATA ────────────────────┐");
+	printf("\n  AUTHOR : @JTJISGOD ( jtjisgod@gmail.com )");
 	while(1) {
+		printf("\n└──────────────────────────────────────────────┘");
+
 	    pcap_next_ex(handle, &header, &packet);
 		int i = 0;
-
-		printf("\n└──────────────────────────────────────────────┘");
 
 		printf("\n\n\n");
 
