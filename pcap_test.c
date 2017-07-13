@@ -7,16 +7,11 @@
 #define IP_SIZE 16
 #define WORD 4 // In TCP, 1 WORD = 4 Bytes
 
-char* getSrcMac(u_char *packet) {
-	static char buf[MAC_SIZE] = "";
-	int i = 12;
-	snprintf(buf, MAC_SIZE, "%02x:%02x:%02x:%02x:%02x:%02x", packet[--i], packet[--i], packet[--i], packet[--i], packet[--i], packet[--i]);
-	return buf;
-}
+#define SRC_MAC 12
+#define DEST_MAC 6
 
-char* getDestMac(u_char *packet) {
+char* getMac(u_char *packet, int i) {
 	static char buf[MAC_SIZE] = "";
-	int i = 6;
 	snprintf(buf, MAC_SIZE, "%02x:%02x:%02x:%02x:%02x:%02x", packet[--i], packet[--i], packet[--i], packet[--i], packet[--i], packet[--i]);
 	return buf;
 
@@ -87,8 +82,8 @@ int main(int argc, char *argv[])
 	    pcap_next_ex(handle, &header, &packet);
 		int i = 0;
 
-		printf("\n -> getSrcMac : %s", getSrcMac(packet));
-		printf("\n -> getDestMac : %s", getDestMac(packet));
+		printf("\n -> Source Mac Address : %s", getMac(packet, SRC_MAC));
+		printf("\n -> Destination Mac Address : %s", getMac(packet, DEST_MAC));
 
 		// Ethernet Protocol 이라면
 		if(!isInternetProtocol(packet))	{ continue; }
