@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "/usr/include/pcap.h"
+#include <netinet/in.h>
 
 #pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
@@ -49,7 +50,7 @@ int isInternetProtocol(u_char *packet) {
 }
 
 int isTCP(u_char *packet) {
-	if(packet[ETHERNET_OFFSET + 9] == 6)	{ return 1; }
+	if(packet[ETHERNET_OFFSET + 9] == IPPROTO_TCP)	{ return 1; }
 	return 0;
 }
 
