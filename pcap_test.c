@@ -66,8 +66,15 @@ int main(int argc, char *argv[])
 	struct pcap_pkthdr header;		/* The header that pcap gives us */
 	const u_char *packet;			/* The actual packet */
 
-	dev = pcap_lookupdev(errbuf);
-
+	// dev = pcap_lookupdev(errbuf);
+	if(argc != 2) {
+		printf("\n\nUsage : %s {Network Device}", argv[0]);
+		printf("\ne.f. %s eth0\n\n\n\n", argv[0]);
+		return 2;
+	}
+	
+	dev = argv[1];
+	
 	system("clear");
 
 	printf("\n\n");
