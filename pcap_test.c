@@ -100,10 +100,12 @@ int main(int argc, char *argv[])
 
 	printf("\n┌──────────────────── DATA ────────────────────┐");
 	printf("\n  AUTHOR : @JTJISGOD ( jtjisgod@gmail.com )");
+	int chk  = 0;
 	while(1) {
 		printf("\n└──────────────────────────────────────────────┘");
 
-	    pcap_next_ex(handle, &header, &packet);
+	    	chk = pcap_next_ex(handle, &header, &packet);
+		if(chk != 1 ) continue;
 		int i = 0;
 
 		printf("\n\n\n");
